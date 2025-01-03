@@ -10,13 +10,14 @@ class Printable
 {
 public:
   virtual void print() const = 0;
+  virtual void destroy() = 0;
 };
 
 class PrintStr : public Printable
 {
 public:
-  PrintStr(const std::string &in, int &idx);
-
+  PrintStr(const std::string &in, int &idx);  
+  void destroy() override { };
   void print() const override;
 
 private:
@@ -45,6 +46,7 @@ public:
   Repetition(const std::string &in, int &idx);
   ~Repetition();
 
+  void destroy() override;
   void print() const override;
 
 private:
@@ -90,12 +92,17 @@ void Repetition::print() const
   }
 }
 
-Repetition::~Repetition()
-{
-  for (Printable *p : children_) {
+void Repetition::destroy() {
+  for (Printable *p : children_) {    
+    p->destroy();
     delete p;
     p = nullptr;
   }
+}
+
+Repetition::~Repetition()
+{
+  destroy();
 }
 
 std::unique_ptr<Printable> parseRepetition(const std::string &in, int &idx)
